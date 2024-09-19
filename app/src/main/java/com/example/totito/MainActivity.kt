@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.material3.* 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,17 +44,25 @@ fun TotitoApp() {
 fun StartScreen(onStartGame: (Int) -> Unit) {
     var boardSize by remember { mutableStateOf(3) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text(text = "Bienvenido a Totito", style = MaterialTheme.typography.headlineLarge)
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp)) {
+        Text(text = "Bienvenido a Totito", style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(text = "Selecciona el tamaño del tablero:")
         Row {
-            Button(onClick = { boardSize = 3 }) { Text("3x3") }
+            Button(onClick = { boardSize = 3 }) {
+                Text("3x3")
+            }
             Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { boardSize = 4 }) { Text("4x4") }
+            Button(onClick = { boardSize = 4 }) {
+                Text("4x4")
+            }
             Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { boardSize = 5 }) { Text("5x5") }
+            Button(onClick = { boardSize = 5 }) {
+                Text("5x5")
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -64,6 +72,7 @@ fun StartScreen(onStartGame: (Int) -> Unit) {
         }
     }
 }
+
 @Composable
 fun TotitoGameScreen(logica: TotitoLogic, onRestartGame: () -> Unit) {
     val matriz = remember { mutableStateOf(logica.obtenerMatriz()) }
@@ -81,7 +90,7 @@ fun TotitoGameScreen(logica: TotitoLogic, onRestartGame: () -> Unit) {
             ) {
                 Text(
                     text = "Turno del jugador ${if (turno.value == 1) "X" else "O"}",
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.headlineMedium
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -120,7 +129,7 @@ fun TotitoGameScreen(logica: TotitoLogic, onRestartGame: () -> Unit) {
                 if (ganador.value != 0) {
                     Text(
                         text = "El ganador es el jugador ${if (ganador.value == 1) "X" else "O"}",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.headlineMedium
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(onClick = { onRestartGame() }) {
