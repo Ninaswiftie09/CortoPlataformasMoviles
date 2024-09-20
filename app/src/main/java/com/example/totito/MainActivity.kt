@@ -8,7 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.totito.ui.theme.TotitoTheme
 
@@ -16,7 +15,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            TotitoApp()
+            TotitoTheme {
+                TotitoApp()
+            }
         }
     }
 }
@@ -25,22 +26,24 @@ class MainActivity : ComponentActivity() {
 fun TotitoApp() {
     var startGame by remember { mutableStateOf(false) }
     var boardSize by remember { mutableStateOf(3) }
+    var player1Name by remember { mutableStateOf("") }
+    var player2Name by remember { mutableStateOf("") }
 
     if (startGame) {
-        // Mostrar pantalla del juego
         val logica = remember { mutableStateOf(TotitoLogic(size = boardSize)) }
-        TotitoGameScreen(logica.value)
+        TotitoGameScreen(logica.value, player1Name, player2Name, onRegresar = { startGame = false })
     } else {
-        // Mostrar pantalla de inicio
-        StartScreen(onStartGame = { size ->
+        StartScreen(onStartGame = { size, p1Name, p2Name ->
             boardSize = size
+            player1Name = p1Name
+            player2Name = p2Name
             startGame = true
         })
     }
 }
 
 @Composable
-fun StartScreen(onStartGame: (Int) -> Unit) {
+fun StartScreen(onStartGame: (Int, String, String) -> Unit) {
     var player1Name by remember { mutableStateOf("") }
     var player2Name by remember { mutableStateOf("") }
     var boardSize by remember { mutableStateOf(3) }
@@ -71,7 +74,7 @@ fun StartScreen(onStartGame: (Int) -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = { onStartGame(boardSize) }) {
+        Button(onClick = { onStartGame(boardSize, player1Name, player2Name) }) {
             Text("Iniciar Juego")
         }
     }
@@ -145,14 +148,12 @@ class TotitoLogic(private val size: Int = 3) {
 }
 
 @Composable
-fun TotitoGameScreen(logica: TotitoLogic) {
+fun TotitoGameScreen(logica: TotitoLogic, player1Name: String, player2Name: String, onRegresar: () -> Unit) {
     val matriz = remember { mutableStateOf(logica.obtenerMatriz()) }
     val turno = remember { mutableStateOf(logica.obtenerTurno()) }
     val ganador = remember { mutableStateOf(0) }
 
     Scaffold(
-
-
         content = { padding ->
             Column(
                 modifier = Modifier
@@ -161,7 +162,7 @@ fun TotitoGameScreen(logica: TotitoLogic) {
                     .padding(16.dp)
             ) {
                 Text(
-                    text = "Turno del jugador ${if (turno.value == 1) "X" else "O"}",
+                    text = "Turno del jugador ${if (turno.value == 1) player1Name else player2Name}",
                     style = MaterialTheme.typography.bodyLarge
                 )
 
@@ -171,9 +172,9 @@ fun TotitoGameScreen(logica: TotitoLogic) {
                     Row {
                         for (j in 0 until matriz.value[i].size) {
                             val buttonColor = when (matriz.value[i][j]) {
-                                1 -> ButtonDefaults.buttonColors(containerColor = Color.Red)
-                                2 -> ButtonDefaults.buttonColors(containerColor = Color.Blue)
-                                else -> ButtonDefaults.buttonColors(containerColor = Color.Gray)
+                                1 -> Color.Green // Color para jugador 1
+                                2 -> Color.Yellow // Color para jugador 2
+                                else -> Color.Gray
                             }
 
                             Button(
@@ -185,11 +186,11 @@ fun TotitoGameScreen(logica: TotitoLogic) {
                                     }
                                 },
                                 enabled = matriz.value[i][j] == 0,
-                                colors = buttonColor,
                                 modifier = Modifier
                                     .weight(1f)
                                     .aspectRatio(1f)
-                                    .padding(4.dp)
+                                    .padding(4.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = buttonColor)
                             ) {
                                 Text(
                                     text = when (matriz.value[i][j]) {
@@ -208,16 +209,40 @@ fun TotitoGameScreen(logica: TotitoLogic) {
 
                 if (ganador.value != 0) {
                     Text(
-                        text = "El ganador es el jugador ${if (ganador.value == 1) "X" else "O"}",
+                        text = "El ganador es el jugador ${if (ganador.value == 1) player1Name else player2Name}",
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    Button(onClick = {
-                        logica.reiniciarJuego()
-                        matriz.value = logica.obtenerMatriz()
-                        ganador.value = 0
-                    }) {
-                        Text("Reiniciar Juego")
+                    Row {
+                        Button(onClick = {
+                            logica.reiniciarJuego()
+                            matriz.value = logica.obtenerMatriz()
+                            ganador.value = 0
+                        }) {
+                            Text("Reiniciar Juego")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(onClick = { onRegresar() }) {
+                            Text("Regresar")
+                        }
+                    }
+                } else if (matriz.value.all { fila -> fila.all { it != 0 } }) {
+                    Text(
+                        text = "Ninguno ganó",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row {
+                        Button(onClick = {
+                            logica.reiniciarJuego()
+                            matriz.value = logica.obtenerMatriz()
+                        }) {
+                            Text("Reiniciar Juego")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(onClick = { onRegresar() }) {
+                            Text("Regresar")
+                        }
                     }
                 }
             }
